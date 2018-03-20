@@ -13,7 +13,7 @@ import datetime
 
 
 ########################################################################
-class EventEngine(object):
+class eventEngine(object):
     """
     事件驱动引擎
     事件驱动引擎中所有的变量都设置为了私有，这是为了防止不小心
@@ -87,9 +87,10 @@ class EventEngine(object):
             try:
                 event = self.__queue.get(block=True, timeout=1)  # 获取事件的阻塞时间设为1秒
 
-                #self.__process(event)
+                self.__process(event)
 
-                print 'Event: '+event
+                # print 'Event: ',event.type_
+                # print event.dict_
                 print datetime.datetime.now()
 
             except Empty:
@@ -97,7 +98,7 @@ class EventEngine(object):
 
     # ----------------------------------------------------------------------
     def __process(self, event):
-        print 'CHULISHIJIAN..........',event
+        print 'CHULISHIJIAN..........'
         """处理事件"""
         # 检查是否存在对该事件进行监听的处理函数
         if event.type_ in self.__handlers:
@@ -155,10 +156,12 @@ class EventEngine(object):
         """注册事件处理函数监听"""
         # 尝试获取该事件类型对应的处理函数列表，若无defaultDict会自动创建新的list
         handlerList = self.__handlers[type_]
+        print handlerList
 
         # 若要注册的处理器不在该事件的处理器列表中，则注册该事件
         if handler not in handlerList:
             handlerList.append(handler)
+            print handlerList
 
     # ----------------------------------------------------------------------
     def unregister(self, type_, handler):
@@ -179,3 +182,11 @@ class EventEngine(object):
         """向事件队列中存入事件"""
         self.__queue.put(event)
 
+class Event:
+    """事件对象"""
+
+    #----------------------------------------------------------------------
+    def __init__(self, type_=None):
+        """Constructor"""
+        self.type_ = type_      # 事件类型
+        self.dict_ = {}         # 字典用于保存具体的事件数据

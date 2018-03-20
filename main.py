@@ -3,9 +3,11 @@ from register_stock import *
 from Queue import Queue, Empty
 from threading import Thread
 from eventEngine import *
+from strategy import *
 import os,sys
 import time,datetime
-ee=EventEngine()
+ee=eventEngine()
+
 i=1
 # while True:
 #     ee.put('s'*i)
@@ -22,24 +24,9 @@ i=1
 import socket
 HOST = '127.0.0.1'
 PORT = 4413
-stocklist=[
-# 'N.CN','EAT.CN','MMJ.CN'
-   'BMW.DE','DAI.DE','BAS.DE','BMW.DE'
-    #'3188.HK','0939.HK','2327.HK','0175.HK','2899.HK'
-]
-url_L2='http://127.0.0.1:8080/Register?symbol=%s&feedtype=L2'
-url_L1='http://127.0.0.1:8080/Register?symbol=%s&feedtype=L1'
-url_TOS='http://127.0.0.1:8080/Register?symbol=%s&feedtype=TOS'
-url_L1_Setuotput='http://127.0.0.1:8080/SetOutput?symbol=%s&feedtype=L1&output='+str(PORT)+'&status=on'
-url_TOS_Setuotput='http://127.0.0.1:8080/SetOutput?symbol=%s&feedtype=TOS&output='+str(PORT)+'&status=on'
-url_Deregister_TOS='http://127.0.0.1:8080/Register?symbol=%s&feedtype=TOS'
-# for stock in stocklist:
-#    register(url_Deregister_TOS,stock)
-#
-#
-#
-# for stock in stocklist:
-#     register(url_TOS_Setuotput,stock)
+
+
+
     # register(url_L1_Setuotput,stock)
 # def datarecoder(data):
 #     symbol=data[3]
@@ -47,11 +34,11 @@ url_Deregister_TOS='http://127.0.0.1:8080/Register?symbol=%s&feedtype=TOS'
 #     os.write(fd,data)
 
 
-
-
+s1=strategy(ee)
 
 
 def listen(HOST,PORT):
+
 
 
 
@@ -60,6 +47,11 @@ def listen(HOST,PORT):
     i=1
     while True:
         data, addr = s.recvfrom(2048)
+
+
+
+
+        
         if not data:
             print "client has exist"
             break
@@ -71,6 +63,8 @@ def listen(HOST,PORT):
         message= d[1][8:]
         symbol=d[3][7:]
         market=symbol[-2:]
+        date=d[-1][5:15]
+        print date
 
 
         print message ,symbol ,market,datetime.datetime.now()
@@ -79,10 +73,19 @@ def listen(HOST,PORT):
         if message=='TOS':
 
             os.chdir('d:\\data\\TOS')
+            if not os.path.exists(market):
+                os.makedirs(market)
+                print '%s is not exits' % market
+            os.chdir(market)
             if not os.path.exists(symbol):
                 os.makedirs(symbol)
                 print '%s is not exits' % symbol
             os.chdir(symbol)
+            if not os.path.exists(date):
+                os.makedirs(date)
+                print '%s is not exits' % date
+            os.chdir(date)
+
 
 
             fo = open(str(symbol) + '.txt', 'a+')
@@ -90,7 +93,19 @@ def listen(HOST,PORT):
             fo.close()
             i = i + 1
             print i
-            ee.put(data)
+
+            d1=data.split(',')
+            tickdata={}
+            tickdata['symbol']=d1[3][7:]
+
+            tickdata['price']=d1[5][6:]
+            event= Event();
+            event.type_='tick'
+            event.dict_=tickdata
+
+
+
+            ee.put(event)
 
             # os.makedirs(t)
 
